@@ -1,6 +1,5 @@
+// File: apps/chat-web/app/store/langchain-chat-store.ts
 import { ask } from '@george-ai/langchain-chat'
-
-export type RetrievalFlow = 'Sequential' | 'Parallel' | 'onlyLocal' | 'onlyWeb'
 
 export interface LangchainChatMessage {
   id: string
@@ -28,17 +27,20 @@ const getChat = (sessionId: string): LangchainChatMessage[] => {
   return chatItems.filter((item) => item.sessionId === sessionId)
 }
 
+/**
+ * Send a message to the LLM. The retrievalFlow is now embedded
+ * in the session (on the backend). So we only pass question + sessionId.
+ */
 const sendChatMessage = async (
   message: string,
   sessionId: string,
-  retrievalFlow: RetrievalFlow,
 ): Promise<LangchainChatMessage[]> => {
   const oldChat = getChat(sessionId)
 
+  // No retrievalFlow here, the backend reads sessionFlow itself
   const langchainResult = await ask({
     question: message,
     sessionId,
-    retrievalFlow,
   })
 
   const userMessage: LangchainChatMessage = {
@@ -59,14 +61,11 @@ const sendChatMessage = async (
     time: new Date(),
   }
 
-  const newMessages = [userMessage, botMessage]
-  const newChat = [...oldChat, ...newMessages]
-
+  const newChat = [...oldChat, userMessage, botMessage]
   chatItems = [
     ...chatItems.filter((item) => item.sessionId !== sessionId),
     ...newChat,
   ]
-
   return newChat
 }
 
