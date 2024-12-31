@@ -1,26 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+
 import {
   chatMessagesQueryOptions,
   reset,
 } from '../server-functions/langchain-chat-history'
-import { useSuspenseQuery } from '@tanstack/react-query'
 import { LangchainChatForm } from '../components/langchain-chat-form'
-import { useState, useEffect } from 'react'
 import { Dropdown } from '../components/dropdown'
+import { RetrievalFlow } from '@george-ai/langchain-chat/src/retrievalFlow'
 
 const ChatRoute = () => {
+  const [retrievalFlow, setRetrievalFlow] =
+    useState<RetrievalFlow>('Sequential')
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
-  const [retrievalFlow, setRetrievalFlow] = useState<
-    'Sequential' | 'Parallel' | 'onlyLocal' | 'onlyWeb'
-  >('Sequential')
 
   const { data, refetch, isSuccess } = useSuspenseQuery(
     chatMessagesQueryOptions(sessionId),
   )
 
-  if (isSuccess && data.sessionId !== sessionId) {
-    setSessionId(data.sessionId)
-  }
+  useEffect(() => {
+    if (isSuccess && data.sessionId !== sessionId) {
+      setSessionId(data.sessionId)
+    }
+  }, [isSuccess, data, sessionId])
 
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight)
@@ -56,9 +59,13 @@ const ChatRoute = () => {
               type="button"
               className="btn mb-1"
               onClick={async () => {
-                const { sessionId } = await reset({ data: data.sessionId })
-                setSessionId(sessionId)
-                refetch()
+                if (data?.sessionId) {
+                  const { sessionId: newId } = await reset({
+                    data: data.sessionId,
+                  })
+                  setSessionId(newId)
+                  refetch()
+                }
               }}
             >
               Reset
@@ -71,7 +78,7 @@ const ChatRoute = () => {
       </div>
 
       <section>
-        {data.messages.map((message) => (
+        {data?.messages.map((message) => (
           <div
             className={`chat ${
               message.sender === 'bot' ? 'chat-start' : 'chat-end'
@@ -89,10 +96,13 @@ const ChatRoute = () => {
           </div>
         ))}
       </section>
-      <LangchainChatForm
-        sessionId={data.sessionId}
-        retrievalFlow={retrievalFlow}
-      />
+
+      {data?.sessionId && (
+        <LangchainChatForm
+          sessionId={data.sessionId}
+          retrievalFlow={retrievalFlow}
+        />
+      )}
     </div>
   )
 }

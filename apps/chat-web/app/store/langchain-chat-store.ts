@@ -1,6 +1,5 @@
 import { ask } from '@george-ai/langchain-chat'
-
-export type RetrievalFlow = 'Sequential' | 'Parallel' | 'onlyLocal' | 'onlyWeb'
+import { RetrievalFlow } from '@george-ai/langchain-chat/src/retrievalFlow'
 
 export interface LangchainChatMessage {
   id: string
