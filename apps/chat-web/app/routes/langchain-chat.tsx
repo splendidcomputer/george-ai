@@ -11,7 +11,7 @@ import { Dropdown } from '../components/dropdown'
 const ChatRoute = () => {
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
   const [retrievalFlow, setRetrievalFlow] = useState<
-    'Sequential' | 'Parallel' | 'Only Local' | 'Only Web'
+    'Sequential' | 'Parallel' | 'onlyLocal' | 'onlyWeb'
   >('Sequential')
 
   const { data, refetch, isSuccess } = useSuspenseQuery(
@@ -44,11 +44,11 @@ const ChatRoute = () => {
                 },
                 {
                   title: 'Only Local',
-                  action: () => setRetrievalFlow('Only Local'),
+                  action: () => setRetrievalFlow('onlyLocal'),
                 },
                 {
                   title: 'Only Web',
-                  action: () => setRetrievalFlow('Only Web'),
+                  action: () => setRetrievalFlow('onlyWeb'),
                 },
               ]}
             />
@@ -65,7 +65,7 @@ const ChatRoute = () => {
             </button>
           </div>
           <div className="mt-2">
-            Current Retrieval Flow: <b>{retrievalFlow}</b>
+            Current Retrieval Flow: <b>{formatRetrievalFlow(retrievalFlow)}</b>
           </div>
         </div>
       </div>
@@ -103,3 +103,10 @@ export const Route = createFileRoute('/langchain-chat')({
     await context.queryClient.ensureQueryData(chatMessagesQueryOptions())
   },
 })
+
+const formatRetrievalFlow = (flow: string) => {
+  return flow
+    .split(/(?=[A-Z])|_/g)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}

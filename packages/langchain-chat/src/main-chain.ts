@@ -14,8 +14,8 @@ import {
   searchQueryPrompt,
 } from './prompts'
 import { getMessageHistory } from './message-history'
-// import { getPDFContentForQuestion } from './memory-vectorstore'
-import { getPDFContentForQuestion } from './typesense-vectorstore'
+import { getPDFContentForQuestion } from './memory-vectorstore'
+// import { getPDFContentForQuestion } from './typesense-vectorstore'
 import { getWebContent } from './web-vectorstore'
 import * as z from 'zod'
 
@@ -99,7 +99,7 @@ const apologyChainLocalAndWeb = RunnableSequence.from([
 const branchChain = RunnableLambda.from(
   async (input: { question: string; retrievalFlow?: string }, options) => {
     switch (input.retrievalFlow) {
-      case 'Only Local': {
+      case 'onlyLocal': {
         const localResponse = await pdfChain.invoke(input, options)
         if (!localResponse.notEnoughInformation) {
           return localResponse
@@ -108,7 +108,7 @@ const branchChain = RunnableLambda.from(
         return apologyChainOnlyLocal.invoke(input, options)
       }
 
-      case 'Only Web': {
+      case 'onlyWeb': {
         const webResponse = await webChain.invoke(input, options)
         if (!webResponse.notEnoughInformation) {
           return webResponse

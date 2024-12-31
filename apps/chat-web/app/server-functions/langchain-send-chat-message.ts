@@ -11,8 +11,8 @@ export const sendChatMessage = createServerFn({ method: 'POST' })
         retrievalFlow: z.enum([
           'Sequential',
           'Parallel',
-          'Only Local',
-          'Only Web',
+          'onlyLocal',
+          'onlyWeb',
         ]),
       })
       .parse(data),
